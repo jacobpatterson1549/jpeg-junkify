@@ -15,59 +15,61 @@ var test_jpg []byte // 16536 bytes (~16K)
 var junkify_test_go []byte
 
 func TestJunkify(t *testing.T) {
-	tests := []struct {
+	tests := map[string]struct {
 		img         io.Reader
 		bytesLimit  int
 		wantOk      bool
 		wantSize    int
 		wantQuality int
 	}{
-		{},
-		{ // not an image
+		"no image": {},
+		"not an image": {
 			img: bytes.NewReader(junkify_test_go),
 		},
-		{ // read error
+		"image read error": {
 			img: iotest.ErrReader(errors.New("read error")),
 		},
-		{ // smaller than limit
+		"smaller than limit": {
 			img:         bytes.NewReader(test_jpg),
 			bytesLimit:  1000000,
 			wantOk:      true,
 			wantSize:    16536,
 			wantQuality: 100,
 		},
-		{ // happy path: quality 73
+		"smaller size": {
 			img:         bytes.NewReader(test_jpg),
 			bytesLimit:  10000,
 			wantOk:      true,
 			wantSize:    9722,
 			wantQuality: 98,
 		},
-		{ // happy path: quality 50 - should short circut
+		"short circut 50% quality": {
 			img:         bytes.NewReader(test_jpg),
 			bytesLimit:  2612,
 			wantOk:      true,
 			wantSize:    2612,
 			wantQuality: 50,
 		},
-		{ // limit too small
+		"limit too small": {
 			img:        bytes.NewReader(test_jpg),
 			bytesLimit: 1,
 		},
 	}
-	for i, test := range tests {
-		gotBytes, gotQuality, err := Junkfiy(test.img, test.bytesLimit)
-		switch {
-		case !test.wantOk:
-			if err == nil {
-				t.Errorf("test %v: wanted error", i)
+	for name, test := range tests {
+		t.Run(name, func(t *testing.T) {
+			gotBytes, gotQuality, err := Junkfiy(test.img, test.bytesLimit)
+			switch {
+			case !test.wantOk:
+				if err == nil {
+					t.Errorf("wanted error")
+				}
+			case err != nil:
+				t.Errorf("unwanted error: %v", err)
+			case len(gotBytes) != test.wantSize:
+				t.Errorf("sizes not equal:\nwanted: %v\ngot:    %v", test.wantSize, len(gotBytes))
+			case gotQuality != test.wantQuality:
+				t.Errorf("qualities not equal: wanted: %v got: %v", test.wantQuality, gotQuality)
 			}
-		case err != nil:
-			t.Errorf("test %v: unwanted error: %v", i, err)
-		case len(gotBytes) != test.wantSize:
-			t.Errorf("test %v: sizes not equal:\nwanted: %v\ngot:    %v", i, test.wantSize, len(gotBytes))
-		case gotQuality != test.wantQuality:
-			t.Errorf("test %v: qualities not equal: wanted: %v got: %v", i, test.wantQuality, gotQuality)
-		}
+		})
 	}
 }

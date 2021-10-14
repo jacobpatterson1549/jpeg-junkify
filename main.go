@@ -29,11 +29,8 @@ func junkifyFiles(b, filename, inDirectory, outDirectory string) {
 		log.Fatal("positive file size limit required")
 	case len(inDirectory) > 0:
 		junkifyBulk(inDirectory, outDirectory, bytesLimit)
-	case len(filename) == 0:
-		log.Fatal("file name required")
 	default:
-		outFilename := filepath.Join(".", filename)
-		junkifyFile(filename, outFilename, bytesLimit)
+		junkifySingle(filename, bytesLimit)
 	}
 }
 
@@ -57,6 +54,16 @@ func junkifyBulk(inDirectory, outDirectory string, bytesLimit int) {
 		if err := <-errs; err != nil {
 			log.Print(err)
 		}
+	}
+}
+
+func junkifySingle(filename string, bytesLimit int) {
+	if len(filename) == 0 {
+		log.Fatal("file name required")
+	}
+	outFilename := filepath.Join(".", filename)
+	if err := junkifyFile(filename, outFilename, bytesLimit); err != nil {
+		log.Print(err)
 	}
 }
 
@@ -107,6 +114,7 @@ func parseBytesLimit(s string) (int, error) {
 		"MB": 1000 * 1000,
 	}
 	m := 1
+	s = strings.ToUpper(s)
 	for suffix, multiplier := range suffixMultipliers {
 		if strings.HasSuffix(s, suffix) {
 			s = strings.TrimSuffix(s, suffix)
