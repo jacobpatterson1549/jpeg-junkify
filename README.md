@@ -5,13 +5,13 @@
 
 ## an image quality reducer
 
-Jpeg-junkify reduces the quality of JPEG images without decreasing their sizes.  Runs on single files or whole folders.
+Jpeg-junkify is a utility that reduces the quality of JPEG images without changing their dimensions.  This makes them take up less space on computers.  The utility runs on single files or whole folders.
 
 ## Dependencies
 
 [Go 1.17](https://golang.org/dl/) is used to build the application.
 
-[Make](https://www.gnu.org/software/make/) is used to by [Makefile](Makefile) to build the application.
+[Make](https://www.gnu.org/software/make/) is used by [Makefile](Makefile) to build the application.
 
 ## Build
 
